@@ -72,7 +72,14 @@ export default function AuthGate() {
     }catch(err){
       const message=err instanceof Error?err.message:String(err)
       if(message==='Failed to fetch'||err instanceof TypeError){
-        setError('Supabase server se connection nahi ho raha. GitHub Actions secrets mein VITE_SUPABASE_URL aur VITE_SUPABASE_PUBLISHABLE_KEY check karo; URL project ka https://<project-ref>.supabase.co hona chahiye. Project paused/network/CORS issue bhi ho sakta hai. Details: '+message)
+        let diagnosis='Browser request Supabase tak nahi pahunchi.'
+        try {
+          const health=await fetch('https://ldpjbwewyihgpfncpumr.supabase.co/auth/v1/health',{method:'GET',cache:'no-store'})
+          diagnosis='Supabase health HTTP '+health.status+'. Signup request ka browser/network/CORS path fail hua.'
+        } catch {
+          diagnosis='Supabase health request bhi browser se block/fail hui. Network, DNS, browser privacy/ad-blocker ya CORS path check required.'
+        }
+        setError(diagnosis+' Details: '+message)
       }else setError(message||'Setup failed. Please retry.')
     }
     finally{setBusy(false)}

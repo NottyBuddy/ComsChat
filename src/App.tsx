@@ -30,6 +30,12 @@ function App() {
   const [active, setActive] = useState(0)
   const [message, setMessage] = useState('')
   const [showLogin, setShowLogin] = useState(true)
+  const [setupDone, setSetupDone] = useState(() => localStorage.getItem('comschat-superadmin-demo') === '1')
+  const [superName, setSuperName] = useState('')
+  const [companyName, setCompanyName] = useState('')
+  const [superPassword, setSuperPassword] = useState('')
+  const [superPasswordConfirm, setSuperPasswordConfirm] = useState('')
+  const [setupError, setSetupError] = useState('')
   const [mobileNav, setMobileNav] = useState(false)
   const [mobileConversation, setMobileConversation] = useState(false)
   const [listSearch, setListSearch] = useState('')
@@ -44,23 +50,38 @@ function App() {
     setSentPreview([...sentPreview, message.trim()])
     setMessage('')
   }
-  if (showLogin) return <main className="login-page">
+  if (showLogin && !setupDone) return <main className="login-page">
     <div className="login-glow glow-one" /><div className="login-glow glow-two" />
     <div className="login-brand"><div className="brand-mark"><Command size={22}/></div><span>coms<span className="brand-accent">chat</span></span></div>
     <section className="login-card">
-      <div className="eyebrow"><ShieldCheck size={14}/> COMPANY WORKSPACE</div>
-      <h1>Your team.<br/><span>One conversation.</span></h1>
-      <p className="login-subtitle">A focused space for your company to communicate, collaborate and stay connected.</p>
-      <label htmlFor="empid">Company Employee ID</label>
-      <div className="input-wrap"><UserRound size={17}/><input id="empid" placeholder="Enter your employee ID" /></div>
-      <label htmlFor="password">Password</label>
-      <div className="input-wrap"><LockKeyhole size={17}/><input id="password" type="password" placeholder="Enter your password" /></div>
-      <button className="primary-button login-button" onClick={() => setShowLogin(false)}>Continue to workspace <ArrowRight size={17}/></button>
-      <div className="login-foot"><LockKeyhole size={13}/> Access is managed by your company administrator.</div>
-    </section>
-    <div className="login-bottom">COMSCHAT <span>•</span> PRIVATE COMPANY MESSAGING</div>
-    <div className="preview-note">UI preview · Authentication is not connected yet</div>
-  </main>
+      <div className="eyebrow"><ShieldCheck size={14}/> FIRST-TIME COMPANY SETUP</div>
+      <h1>Create your<br/><span>Super Admin</span></h1>
+      <p className="login-subtitle">Pehle company workspace aur Super Admin profile create karo.</p>
+      <label htmlFor="supername">Super Admin ka naam</label><div className="input-wrap"><UserRound size={17}/><input id="supername" value={superName} onChange={e=>setSuperName(e.target.value)} placeholder="Apna naam"/></div>
+      <label htmlFor="companyname">Company ka naam</label><div className="input-wrap"><BriefcaseBusiness size={17}/><input id="companyname" value={companyName} onChange={e=>setCompanyName(e.target.value)} placeholder="Company name"/></div>
+      <label>Super Admin ID</label><div className="input-wrap"><ShieldCheck size={17}/><input value="SUPER-ADMIN-001" readOnly/></div>
+      <label htmlFor="superpassword">Password</label><div className="input-wrap"><LockKeyhole size={17}/><input id="superpassword" type="password" value={superPassword} onChange={e=>setSuperPassword(e.target.value)} placeholder="Minimum 8 characters"/></div>
+      <label htmlFor="superpasswordconfirm">Confirm password</label><div className="input-wrap"><LockKeyhole size={17}/><input id="superpasswordconfirm" type="password" value={superPasswordConfirm} onChange={e=>setSuperPasswordConfirm(e.target.value)} placeholder="Password dobara"/></div>
+      <div className="login-error">{setupError}</div>
+      <button className="primary-button login-button" onClick={()=>{if(!superName.trim()||!companyName.trim()||!superPassword){setSetupError("Saari details fill karo.");return}if(superPassword.length<8){setSetupError("Password minimum 8 characters ka ho.");return}if(superPassword!==superPasswordConfirm){setSetupError("Password match nahi kar rahe.");return}localStorage.setItem("comschat-superadmin-demo","1");localStorage.setItem("comschat-superadmin-name",superName.trim());localStorage.setItem("comschat-company-name",companyName.trim());localStorage.setItem("comschat-superadmin-id","SUPER-ADMIN-001");setSetupError("");setSetupDone(true);setShowLogin(false)}}>Create Super Admin <ArrowRight size={17}/></button>
+      <div className="login-foot"><LockKeyhole size={13}/> Demo only: details browser storage mein, real authentication backend abhi nahi hai.</div>
+    </section><div className="login-bottom">COMSCHAT <span>•</span> PRIVATE COMPANY MESSAGING</div><div className="preview-note">Preview · First-time setup</div></main>
+  if (setupDone && !showLogin) return <main className="login-page"><div className="login-glow glow-one"/><div className="login-glow glow-two"/>
+    <div className="login-brand"><div className="brand-mark"><Command size={22}/></div><span>coms<span className="brand-accent">chat</span></span></div><section className="login-card">
+      <div className="eyebrow"><ShieldCheck size={14}/> WORKSPACE CREATED</div><h1>Welcome,<br/><span>{localStorage.getItem("comschat-superadmin-name") || "Super Admin"}</span></h1>
+      <p className="login-subtitle">{localStorage.getItem("comschat-company-name") || "Company"} workspace ready hai. ID note kar lo.</p>
+      <div className="admin-id-box"><span>SUPER ADMIN ID</span><strong>SUPER-ADMIN-001</strong></div>
+      <button className="team-select-card" onClick={()=>alert("Abhi teams create nahi hui. Team creation next step hai.")}><Users size={22}/><strong>Team cards</strong><span>0 teams · Teams create karna next</span><ArrowRight size={16}/></button>
+      <button className="primary-button login-button" onClick={()=>setShowLogin(false)}>Open Workspace <ArrowRight size={17}/></button>
+      <button className="secondary-setup-button" onClick={()=>{localStorage.clear();setSetupDone(false);setShowLogin(true)}}>Reset demo setup</button>
+      <div className="login-foot"><LockKeyhole size={13}/> Preview only — secure account provisioning abhi connect nahi.</div>
+    </section><div className="login-bottom">COMSCHAT <span>•</span> PRIVATE COMPANY MESSAGING</div><div className="preview-note">Preview · Super Admin setup</div></main>
+  if (showLogin) return <main className="login-page"><div className="login-glow glow-one"/><div className="login-glow glow-two"/>
+    <div className="login-brand"><div className="brand-mark"><Command size={22}/></div><span>coms<span className="brand-accent">chat</span></span></div><section className="login-card">
+      <div className="eyebrow"><ShieldCheck size={14}/> COMPANY WORKSPACE</div><h1>Your team.<br/><span>One conversation.</span></h1><p className="login-subtitle">Preview login. Authentication backend abhi connected nahi.</p>
+      <label htmlFor="empid">Employee / Admin ID</label><div className="input-wrap"><UserRound size={17}/><input id="empid" placeholder="Enter your ID"/></div><label htmlFor="password">Password</label><div className="input-wrap"><LockKeyhole size={17}/><input id="password" type="password" placeholder="Enter password"/></div>
+      <button className="primary-button login-button" onClick={()=>setShowLogin(false)}>Continue to workspace <ArrowRight size={17}/></button><div className="login-foot"><LockKeyhole size={13}/> Demo only</div></section>
+    <div className="login-bottom">COMSCHAT <span>•</span> PRIVATE COMPANY MESSAGING</div><div className="preview-note">UI preview · Authentication not connected</div></main>
   return <div className="app-shell">
     <aside className={`sidebar ${mobileNav ? 'mobile-open' : ''}`}>
       <div className="sidebar-top"><div className="brand-mark"><Command size={19}/></div><span className="brand-name">coms<span className="brand-accent">chat</span></span><button className="icon-button sidebar-collapse"><PanelLeftClose size={17}/></button></div>

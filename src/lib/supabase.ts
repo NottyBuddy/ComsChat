@@ -18,3 +18,17 @@ export function authEmailForId(identifier: string) {
   const normalized = identifier.trim().toLowerCase().replace(/[^a-z0-9-_.]/g, '')
   return normalized + '@comschat.invalid'
 }
+
+
+// Performs a browser-side Auth health check before account creation or sign-in.
+// This separates network/CORS failures from Supabase Auth responses.
+export async function checkSupabaseConnection(): Promise<void> {
+  const response = await fetch(`${supabaseUrl}/auth/v1/health`, {
+    method: 'GET',
+    headers: { apikey: supabasePublishableKey, Accept: 'application/json' },
+    cache: 'no-store',
+  })
+  if (!response.ok) {
+    throw new Error(`Supabase Auth health check failed (HTTP ${response.status}). Verify the project API configuration.`)
+  }
+}

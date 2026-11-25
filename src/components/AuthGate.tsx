@@ -67,11 +67,22 @@ export default function AuthGate() {
    if(identifier.trim().toUpperCase()!=='HRH-CA-27558')throw new Error('Super Admin ID fixed hai: HRH-CA-27558')
    if(displayName.trim().length<2||companyName.trim().length<2)throw new Error('Naam aur company required hain.')
    const policy=passwordPolicyError(password,'superadmin');if(policy)throw new Error(policy)
-   const {data:signup,error:signupError}=await supabase.auth.signUp({email:authEmailForId(identifier),password})
-   if(signupError)throw signupError
-   if(!signup.session){setNote('Signup complete, but email confirmation is enabled. Synthetic ID email receive nahi kar sakta; Supabase Auth mein email confirmation disable karna hoga.');return}
+   const email=authEmailForId(identifier)
+   // Recover safely if Auth user was created earlier but the profile RPC did not finish.
+   let sessionReady=false
+   const {data:signup,error:signupError}=await supabase.auth.signUp({email,password})
+   if(!signupError && signup.session) sessionReady=true
+   else if(signupError && /already registered|already been registered|user already exists/i.test(signupError.message)) {
+    const {data:loginData,error:loginError}=await supabase.auth.signInWithPassword({email,password})
+    if(loginError) throw new Error('Is ID ka Auth account pehle se bana hai, lekin diye gaye password se login nahi hua. Password check karo; account/profile ko duplicate create nahi kiya gaya.')
+    sessionReady=Boolean(loginData.session)
+   } else if(signupError) {
+    if(/failed to fetch|network|fetch/i.test(signupError.message)) throw new Error('Supabase se connection nahi ban paaya. Internet/VPN/ad-blocker check karke page refresh karo. Account create hua ya nahi, is attempt mein confirm nahi ho saka; dobara submit karne par app existing account recovery bhi try karega.')
+    throw signupError
+   }
+   if(!sessionReady) throw new Error('Auth session nahi mila. Supabase Auth mein email confirmation disabled hona chahiye; synthetic ID par confirmation email receive nahi ho sakta.')
    const {error:rpcError}=await supabase.rpc('bootstrap_superadmin',{p_display_name:displayName.trim(),p_company_name:companyName.trim(),p_employee_code:identifier.trim()})
-   if(rpcError)throw rpcError
+   if(rpcError) throw new Error('Auth sign-in ho gaya, lekin company profile setup complete nahi hua: '+rpcError.message+'. Isi ID/password se setup dobara submit karo; app existing Auth account ko recover karke profile setup continue karega.')
    await loadProfile()
   }catch(err){setError(err instanceof Error?err.message:'Setup failed.')}
   finally{setBusy(false)}

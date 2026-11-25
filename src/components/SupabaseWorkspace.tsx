@@ -130,7 +130,7 @@ export default function SupabaseWorkspace({profile,company,teams}:{profile:Profi
  const createChat=async(type:'group'|'admin')=>{
   if(!supabase)return
   const team=scopedTeams[0]
-  if(!team){setError('Pehle team create/select karo.');return}
+  if(!team){setError('Create or select a team first.');return}
   setBusy(true);setError('')
   try{
    const {data,error}=await supabase.from('chats').insert({company_id:profile.company_id,team_id:team.id,chat_type:type,title:type==='group'?'New group':'Admin chat',created_by:profile.id}).select('id,chat_type,title,team_id,created_at').single()

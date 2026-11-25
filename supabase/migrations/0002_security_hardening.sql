@@ -81,6 +81,19 @@ create policy "users read permitted profiles"
 on public.profiles for select to authenticated
 using (public.can_view_profile(id));
 
+drop policy if exists "team members read team roster" on public.team_members;
+create policy "users read permitted team roster"
+on public.team_members for select to authenticated
+using (
+  user_id=auth.uid()
+  or exists (
+    select 1 from public.teams t
+    where t.id=team_id
+      and t.company_id=public.current_company_id()
+      and (public.current_role()='superadmin' or public.is_team_member(team_id))
+  )
+);
+
 drop policy if exists "chat members and assigned admins read permitted chats" on public.chats;
 create policy "permitted users read chats"
 on public.chats for select to authenticated
@@ -135,8 +148,12 @@ create policy "authors monitors and superadmins read audit"
 on public.message_audit for select to authenticated
 using (
   actor_id=auth.uid()
-  or public.current_role()='superadmin'
-  or public.can_monitor_chat(chat_id)
+  or exists (
+    select 1 from public.chats c
+    where c.id=message_audit.chat_id
+      and c.company_id=public.current_company_id()
+      and (public.current_role()='superadmin' or public.can_monitor_chat(c.id))
+  )
 );
 
 -- Prevent a client from changing message ownership, destination, attachment, reply target,

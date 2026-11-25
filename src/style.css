@@ -46,3 +46,5 @@
 .real-account-panel h3{display:flex;align-items:center;gap:7px;font-size:11px;color:#dce7f7;margin:3px 0}
 .real-account-panel input,.real-account-panel select{width:100%;min-width:0;padding:9px;background:#0e1420;color:#eaf0fa;border:1px solid #334158;border-radius:7px;font-size:10px}
 .real-account-panel button{display:flex;align-items:center;justify-content:center;gap:6px;padding:9px;border:0;border-radius:7px;background:#5877c7;color:white;font-size:10px}
+
+.real-person{align-items:center}.real-person span{display:flex;flex-direction:column;gap:3px;min-width:0}.real-person button{border:1px solid #34445d;background:#202b3d;color:#dce7f7;padding:5px 8px;border-radius:6px;font-size:9px}

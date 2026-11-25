@@ -7,11 +7,11 @@ type Profile = { id:string; company_id:string; display_name:string; employee_cod
 type Company = { name:string }
 
 export default function AuthGate() {
-  const [mode,setMode]=useState<'login'|'bootstrap'>('login')
-  const [identifier,setIdentifier]=useState('')
+  const [mode,setMode]=useState<'login'|'bootstrap'>('bootstrap')
+  const [identifier,setIdentifier]=useState('HRH-CA-27558')
   const [password,setPassword]=useState('')
-  const [displayName,setDisplayName]=useState('')
-  const [companyName,setCompanyName]=useState('')
+  const [displayName,setDisplayName]=useState('Mahesh Sharma')
+  const [companyName,setCompanyName]=useState('HRH NEXT')
   const [profile,setProfile]=useState<Profile|null>(null)
   const [company,setCompany]=useState('')
   const [busy,setBusy]=useState(false)

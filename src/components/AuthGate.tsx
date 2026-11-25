@@ -33,10 +33,8 @@ export default function AuthGate() {
   setProfile(data as Profile)
   const {data:companyData}=await supabase.from('companies').select('name').eq('id',data.company_id).single()
   setCompany(companyData?.name||'Company workspace')
-  if(['superadmin','admin','subadmin'].includes(data.role)){
-   const {data:teamData}=await supabase.from('teams').select('id,name').eq('company_id',data.company_id).order('name')
-   setTeams((teamData||[]) as Team[])
-  } else setTeams([])
+  const {data:teamData}=await supabase.from('teams').select('id,name').eq('company_id',data.company_id).order('name')
+  setTeams((teamData||[]) as Team[])
   setError('')
  }
  useEffect(()=>{

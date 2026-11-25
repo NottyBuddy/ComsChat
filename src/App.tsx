@@ -9,14 +9,44 @@ type Msg={id:string,by:string,byName:string,text:string,time:string,edited?:bool
 type Chat={id:string,type:'personal'|'group'|'admin',teamId:string,title:string,members:string[],messages:Msg[]}
 const KEY='comschat-demo-v2'
 const ADMIN_ID='HRH-CA-27558'
-const initial: {company:string,superName:string,teams:Team[],users:UserRec[],chats:Chat[]}={company:'',superName:'',teams:[],users:[],chats:[]}
+const initial: {company:string,superName:string,teams:Team[],users:UserRec[],chats:Chat[]}={
+ company:'ComsChat Demo Company',superName:'Super Admin',
+ teams:[
+  {id:'TEAM-SALES',name:'Sales Team',createdAt:'11/25/2026'},
+  {id:'TEAM-SUPPORT',name:'Customer Support',createdAt:'11/25/2026'},
+  {id:'TEAM-OPS',name:'Operations',createdAt:'11/25/2026'}
+ ],
+ users:[
+  {id:ADMIN_ID,name:'Super Admin',role:'superadmin',teamIds:[],active:true,online:true},
+  {id:'ADM-SALES01',name:'Aarav Mehta',role:'admin',teamIds:['TEAM-SALES'],active:true,online:true},
+  {id:'SUB-SALES01',name:'Priya Sharma',role:'subadmin',teamIds:['TEAM-SALES'],active:true,online:false},
+  {id:'EMP-SALES01',name:'Rohan Verma',role:'employee',teamIds:['TEAM-SALES'],active:true,online:true},
+  {id:'EMP-SALES02',name:'Ananya Singh',role:'employee',teamIds:['TEAM-SALES'],active:true,online:false},
+  {id:'ADM-SUP01',name:'Kabir Khan',role:'admin',teamIds:['TEAM-SUPPORT'],active:true,online:true},
+  {id:'EMP-SUP01',name:'Isha Patel',role:'employee',teamIds:['TEAM-SUPPORT'],active:true,online:true},
+  {id:'EMP-OPS01',name:'Dev Malhotra',role:'employee',teamIds:['TEAM-OPS'],active:true,online:false}
+ ],
+ chats:[
+  {id:'DEMO-GROUP-SALES',type:'group',teamId:'TEAM-SALES',title:'Sales Team Updates',members:['HRH-CA-27558','ADM-SALES01','SUB-SALES01','EMP-SALES01','EMP-SALES02'],messages:[
+   {id:'m1',by:'ADM-SALES01',byName:'Aarav Mehta',text:'Morning team. Aaj ke client follow-ups 11 baje tak update kar dena.',time:'09:15'},
+   {id:'m2',by:'EMP-SALES01',byName:'Rohan Verma',text:'3 follow-ups complete. Ek proposal review ke liye bhej diya hai.',time:'09:22'},
+   {id:'m3',by:'EMP-SALES02',byName:'Ananya Singh',text:'Updated the shared tracker.',time:'09:28'}
+  ]},
+  {id:'DEMO-DM-SALES',type:'personal',teamId:'TEAM-SALES',title:'Rohan Verma',members:['HRH-CA-27558','EMP-SALES01'],messages:[
+   {id:'m4',by:'EMP-SALES01',byName:'Rohan Verma',text:'Sir, client proposal ka latest version ready hai.',time:'10:02'}
+  ]},
+  {id:'DEMO-ADMIN-SALES',type:'admin',teamId:'TEAM-SALES',title:'Aarav Mehta',members:['HRH-CA-27558','ADM-SALES01'],messages:[
+   {id:'m5',by:'ADM-SALES01',byName:'Aarav Mehta',text:'Sales team ka weekly summary ready hai.',time:'10:15'}
+  ]}
+ ]
+}
 const uid=()=>Math.random().toString(36).slice(2,10)
 const timeNow=()=>new Date().toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'})
 const initials=(s:string)=>s.split(' ').map(x=>x[0]).join('').slice(0,2).toUpperCase()
 function Avatar({name,color='blue',small=false}:{name:string,color?:string,small?:boolean}){return <div className={'avatar '+color+(small?' small':'')}>{initials(name)}</div>}
 function App(){
  const [data,setData]=useState<typeof initial>(()=>{try{return JSON.parse(localStorage.getItem(KEY)||'null')||initial}catch{return initial}})
- const [setup,setSetup]=useState(!data.company)
+ const [setup,setSetup]=useState(false)
  const [name,setName]=useState(data.superName||'');const [company,setCompany]=useState(data.company||'');const [pass,setPass]=useState('');const [confirm,setConfirm]=useState('');const [error,setError]=useState('')
  const [role,setRole]=useState<Role>('superadmin');const [me,setMe]=useState(ADMIN_ID);const [teamId,setTeamId]=useState('')
  const [tab,setTab]=useState<Tab>('dashboard');const [chatId,setChatId]=useState('');const [mobileMenu,setMobileMenu]=useState(false);const [mobileChat,setMobileChat]=useState(false)

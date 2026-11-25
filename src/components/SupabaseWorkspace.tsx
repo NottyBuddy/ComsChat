@@ -1,13 +1,12 @@
 import { useEffect, useState } from 'react'
 import type { FormEvent } from 'react'
 import { supabase } from '../lib/supabase'
-import { Building2, MessageCircle, Users, Send, Plus, RefreshCw } from 'lucide-react'
+import { Building2, MessageCircle, Send, Plus, RefreshCw, UserPlus, LockKeyhole } from 'lucide-react'
 
 type Profile={id:string;company_id:string;display_name:string;employee_code:string;role:string}
 type Team={id:string;name:string}
 type Chat={id:string;chat_type:string;title:string|null;team_id:string;created_at:string}
 type Message={id:string;chat_id:string;sender_id:string;body:string;created_at:string;edited_at:string|null}
-type Member={user_id:string}
 type Person={id:string;display_name:string;employee_code:string;role:string}
 
 export default function SupabaseWorkspace({profile,company,teams}:{profile:Profile;company:string;teams:Team[]}){
@@ -22,6 +21,15 @@ export default function SupabaseWorkspace({profile,company,teams}:{profile:Profi
  const [teamName,setTeamName]=useState('')
  const [creatingTeam,setCreatingTeam]=useState(false)
  const [busy,setBusy]=useState(false)
+ const [newName,setNewName]=useState('')
+ const [newRole,setNewRole]=useState<'admin'|'subadmin'|'employee'|'agent'>('employee')
+ const [newTeam,setNewTeam]=useState('')
+ const [newPass,setNewPass]=useState('')
+ const [resetId,setResetId]=useState('')
+ const [resetPass,setResetPass]=useState('')
+ const [accountMessage,setAccountMessage]=useState('')
+ const [accountError,setAccountError]=useState('')
+ const [accountBusy,setAccountBusy]=useState(false)
  const isSuper=profile.role==='superadmin'
  const canManage=['superadmin','admin'].includes(profile.role)
 
@@ -49,8 +57,8 @@ export default function SupabaseWorkspace({profile,company,teams}:{profile:Profi
  useEffect(()=>{if(selectedChat)void loadMessages(selectedChat);else setMessages([])},[selectedChat])
  useEffect(()=>{
   if(!supabase||!selectedChat)return
-  const channel=supabase.channel('chat-'+selectedChat).on('postgres_changes',{event:'*',schema:'public',table:'messages',filter:'chat_id=eq.'+selectedChat},()=>void loadMessages(selectedChat)).subscribe()
-  return ()=>{void supabase.removeChannel(channel)}
+  const client=supabase\n  const channel=client.channel('chat-'+selectedChat).on('postgres_changes',{event:'*',schema:'public',table:'messages',filter:'chat_id=eq.'+selectedChat},()=>void loadMessages(selectedChat)).subscribe()
+  return ()=>{void client.removeChannel(channel)}
  },[selectedChat])
  const scopedTeams=teams.filter(t=>!selectedTeam||t.id===selectedTeam)
  const scopedChats=chats.filter(c=>!selectedTeam||c.team_id===selectedTeam)
@@ -65,6 +73,20 @@ export default function SupabaseWorkspace({profile,company,teams}:{profile:Profi
    await loadMessages(selectedChat)
   }catch(e){setError(e instanceof Error?e.message:'Message send failed.')}
   finally{setBusy(false)}
+ }
+ const manageAccount=async(action:'create'|'reset_password')=>{
+  if(!supabase)return
+  setAccountBusy(true);setAccountError('');setAccountMessage('')
+  try{
+   const body=action==='create'?{action,display_name:newName,role:newRole,team_id:newTeam,password:newPass}:{action,employee_code:resetId,password:resetPass}
+   const {data,error}=await supabase.functions.invoke('manage-comschat-account',{body})
+   if(error)throw error
+   if(data?.error)throw new Error(data.error)
+   setAccountMessage(action==='create'?'Created account ID: '+data.employee_code:'Password reset complete. Change required at next login.')
+   setNewName('');setNewPass('');setNewTeam('');setResetId('');setResetPass('')
+   await load()
+  }catch(e){setAccountError(e instanceof Error?e.message:'Account action failed.')}
+  finally{setAccountBusy(false)}
  }
  const createTeam=async(e:FormEvent)=>{
   e.preventDefault();if(!supabase||!teamName.trim())return
@@ -97,6 +119,11 @@ export default function SupabaseWorkspace({profile,company,teams}:{profile:Profi
    <div className="real-label">CONVERSATIONS</div>{scopedChats.map(c=><button key={c.id} className={'real-chat-link '+(selectedChat===c.id?'active':'')} onClick={()=>setSelectedChat(c.id)}><MessageCircle size={16}/><span>{c.title||c.chat_type+' chat'}</span><small>{c.chat_type}</small></button>)}
    {!loading&&scopedChats.length===0&&<p className="real-muted">No conversations yet.</p>}
    {canManage&&<div className="real-create-chat"><button onClick={()=>void createChat('group')} disabled={busy}><Plus size={15}/> New group</button><button onClick={()=>void createChat('admin')} disabled={busy}><Plus size={15}/> Admin chat</button></div>}
+   {canManage&&<section className="real-account-panel"><div className="real-label">ACCOUNT MANAGEMENT</div>
+    <form onSubmit={e=>{e.preventDefault();void manageAccount('create')}}><h3><UserPlus size={15}/> Create account</h3><input value={newName} onChange={e=>setNewName(e.target.value)} placeholder="Full name" required/><select value={newRole} onChange={e=>setNewRole(e.target.value as typeof newRole)}>{(isSuper?['admin','subadmin','agent','employee']:['subadmin','agent','employee']).map(r=><option value={r} key={r}>{r.toUpperCase()}</option>)}</select><select value={newTeam} onChange={e=>setNewTeam(e.target.value)} required><option value="">Assign team</option>{teams.map(t=><option value={t.id} key={t.id}>{t.name}</option>)}</select><input type="password" value={newPass} onChange={e=>setNewPass(e.target.value)} placeholder={newRole==='admin'||newRole==='subadmin'?'Temporary password (include @)':'Temporary password (include $)'} required/><button disabled={accountBusy}><Plus size={14}/> Create</button></form>
+    <form onSubmit={e=>{e.preventDefault();void manageAccount('reset_password')}}><h3><LockKeyhole size={15}/> Reset password</h3><input value={resetId} onChange={e=>setResetId(e.target.value)} placeholder="Employee/Admin ID" required/><input type="password" value={resetPass} onChange={e=>setResetPass(e.target.value)} placeholder="New temporary password" required/><button disabled={accountBusy}><RefreshCw size={14}/> Reset</button></form>
+    {accountError&&<div className="auth-error">{accountError}</div>}{accountMessage&&<div className="auth-note">{accountMessage}</div>}
+   </section>}
    <div className="real-label">PEOPLE VISIBLE TO YOU</div>{people.map(p=><div className="real-person" key={p.id}><span>{p.display_name}</span><small>{p.employee_code}</small></div>)}
   </aside>
   <section className="real-main"><div className="real-page-head"><div><div className="real-label">LIVE WORKSPACE</div><h1>{activeChat?.title||'Your conversations'}</h1><p>Real Supabase records · role-based access</p></div><button onClick={()=>void load()}><RefreshCw size={15}/> Refresh</button></div>

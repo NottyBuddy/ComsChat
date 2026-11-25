@@ -61,7 +61,6 @@ as $$
     from public.profiles target
     where target.id=target_user
       and target.company_id=public.current_company_id()
-      and target.active=true
       and (
         target.id=auth.uid()
         or public.current_role()='superadmin'

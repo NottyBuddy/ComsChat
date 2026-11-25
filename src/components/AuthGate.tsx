@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import type { FormEvent } from 'react'
 import { supabase, supabaseConfigured, authEmailForId } from '../lib/supabase'
 import { passwordPolicyError } from '../lib/passwordPolicy'
-import { ShieldCheck, LockKeyhole, UserRound, Building2, LogIn, LoaderCircle, LogOut, Plus, RefreshCw } from 'lucide-react'
+import { ShieldCheck, LockKeyhole, UserRound, Building2, LogIn, LoaderCircle, LogOut } from 'lucide-react'
 import SupabaseWorkspace from './SupabaseWorkspace'
 
 type Profile = { id:string; company_id:string; display_name:string; employee_code:string; role:string; active:boolean; must_change_password:boolean }
@@ -21,14 +21,6 @@ export default function AuthGate() {
  const [note,setNote]=useState('')
  const [teams,setTeams]=useState<Team[]>([])
  const [accountName,setAccountName]=useState('')
- const [accountRole,setAccountRole]=useState<'admin'|'subadmin'|'employee'|'agent'>('employee')
- const [accountTeam,setAccountTeam]=useState('')
- const [accountPassword,setAccountPassword]=useState('')
- const [targetCode,setTargetCode]=useState('')
- const [resetPassword,setResetPassword]=useState('')
- const [accountBusy,setAccountBusy]=useState(false)
- const [accountNote,setAccountNote]=useState('')
- const [accountError,setAccountError]=useState('')
  const [newPassword,setNewPassword]=useState('')
  const [confirmPassword,setConfirmPassword]=useState('')
  const [changingPassword,setChangingPassword]=useState(false)
@@ -86,19 +78,6 @@ export default function AuthGate() {
   finally{setBusy(false)}
  }
  async function logout(){if(supabase)await supabase.auth.signOut();setProfile(null);setCompany('');setPassword('')}
- async function manageAccount(action:'create'|'reset_password'){
-  setAccountBusy(true);setAccountError('');setAccountNote('')
-  try{
-   if(!supabase)throw new Error('Supabase configuration missing.')
-   const body=action==='create'?{action,display_name:accountName,role:accountRole,team_id:accountTeam,password:accountPassword}:{action,employee_code:targetCode,password:resetPassword}
-   const {data,error}=await supabase.functions.invoke('manage-comschat-account',{body})
-   if(error)throw error
-   if(data?.error)throw new Error(data.error)
-   if(action==='create'){setAccountNote('Account created. Employee ID: '+data.employee_code+'. Temporary password securely share karo; first login par change required.');setAccountName('');setAccountPassword('');setAccountTeam('')}
-   else{setAccountNote('Password reset successful. User must change password at next login.');setTargetCode('');setResetPassword('')}
-  }catch(err){setAccountError(err instanceof Error?err.message:'Account operation failed.')}
-  finally{setAccountBusy(false)}
- }
  async function changePassword(e:FormEvent){
   e.preventDefault();setChangingPassword(true);setError('');setNote('')
   try{

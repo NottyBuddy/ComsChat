@@ -31,9 +31,14 @@ function App() {
   const [message, setMessage] = useState('')
   const [showLogin, setShowLogin] = useState(true)
   const [mobileNav, setMobileNav] = useState(false)
+  const [mobileConversation, setMobileConversation] = useState(false)
+  const [listSearch, setListSearch] = useState('')
   const [sentPreview, setSentPreview] = useState<string[]>([])
   const selected = people[active]
+  const filteredPeople = people.filter(p => (p.name + p.message).toLowerCase().includes(listSearch.toLowerCase()))
+  const filteredGroups = groups.filter(g => (g.name + g.message).toLowerCase().includes(listSearch.toLowerCase()))
   const title = view === 'personal' ? selected.name : view === 'groups' ? groups[active % groups.length].name : 'Team Admin'
+  const switchView = (next: View) => { setView(next); setActive(0); setSentPreview([]); setMobileConversation(false); setListSearch('') }
   const send = () => {
     if (!message.trim()) return
     setSentPreview([...sentPreview, message.trim()])
@@ -61,9 +66,9 @@ function App() {
       <div className="sidebar-top"><div className="brand-mark"><Command size={19}/></div><span className="brand-name">coms<span className="brand-accent">chat</span></span><button className="icon-button sidebar-collapse"><PanelLeftClose size={17}/></button></div>
       <div className="workspace-switch"><div className="workspace-icon">N</div><div className="workspace-copy"><strong>Northstar Company</strong><span>Sales team workspace</span></div><ChevronDown size={15}/></div>
       <div className="sidebar-label">MESSAGES</div>
-      <button className={`nav-item ${view === 'personal' ? 'selected' : ''}`} onClick={() => setView('personal')}><MessageCircle size={18}/> Personal chat <span className="nav-count">2</span></button>
-      <button className={`nav-item ${view === 'groups' ? 'selected' : ''}`} onClick={() => setView('groups')}><Users size={18}/> Group chat <span className="nav-count">4</span></button>
-      <button className={`nav-item ${view === 'admin' ? 'selected' : ''}`} onClick={() => setView('admin')}><ShieldCheck size={18}/> Admin chat</button>
+      <button className={`nav-item ${view === 'personal' ? 'selected' : ''}`} onClick={() => switchView('personal')}><MessageCircle size={18}/> Personal chat <span className="nav-count">2</span></button>
+      <button className={`nav-item ${view === 'groups' ? 'selected' : ''}`} onClick={() => switchView('groups')}><Users size={18}/> Group chat <span className="nav-count">4</span></button>
+      <button className={`nav-item ${view === 'admin' ? 'selected' : ''}`} onClick={() => switchView('admin')}><ShieldCheck size={18}/> Admin chat</button>
       <div className="sidebar-label second-label">WORKSPACE</div>
       <button className="nav-item"><BriefcaseBusiness size={18}/> Team directory</button>
       <button className="nav-item"><FileText size={18}/> Shared files</button>
@@ -74,12 +79,12 @@ function App() {
     {mobileNav && <div className="mobile-scrim" onClick={() => setMobileNav(false)}/>}
     <main className="main-area">
       <header className="topbar"><div className="topbar-left"><button className="icon-button mobile-menu" onClick={() => setMobileNav(!mobileNav)}><Menu size={19}/></button><div className="crumb">Workspace <span>/</span> <strong>{view === 'personal' ? 'Personal chat' : view === 'groups' ? 'Group chat' : 'Admin chat'}</strong></div></div><div className="topbar-right"><div className="secure-pill"><span/> Team space secured</div><button className="icon-button"><Search size={18}/></button><button className="icon-button notification"><Bell size={18}/><i/></button><Avatar initials="MK" color="orange" small/></div></header>
-      <div className="content-area">
+      <div className={`content-area ${mobileConversation ? "show-conversation" : ""}`}>
         <section className="chat-list-panel">
           <div className="panel-heading"><div><div className="eyebrow">YOUR TEAM</div><h2>{view === 'personal' ? 'Personal chats' : view === 'groups' ? 'Group chats' : 'Admin chat'}</h2></div><button className="icon-button add-button"><Plus size={18}/></button></div>
-          <div className="list-search"><Search size={16}/><input placeholder="Search conversations..." /></div>
+          <div className="list-search"><Search size={16}/><input value={listSearch} onChange={e => setListSearch(e.target.value)} placeholder="Search conversations..." /></div>
           <div className="filter-row"><button className="filter-active">All</button><button>Unread</button><button>Recent</button></div>
-          {view === 'personal' ? people.map((p, i) => <button key={p.name} className={`chat-list-item ${active === i ? 'active' : ''}`} onClick={() => setActive(i)}><Avatar initials={p.initials} color={p.color}/><div className="chat-item-copy"><div className="chat-item-top"><strong>{p.name}</strong><time>{p.time}</time></div><div className="chat-item-bottom"><span>{p.message}</span>{p.unread > 0 && <b>{p.unread}</b>}</div></div></button>) : view === 'groups' ? groups.map((g, i) => <button key={g.name} className={`chat-list-item ${active % groups.length === i ? 'active' : ''}`} onClick={() => setActive(i)}><Avatar initials={g.initials} color={g.color}/><div className="chat-item-copy"><div className="chat-item-top"><strong>{g.name}</strong><time>{g.time}</time></div><div className="chat-item-bottom"><span>{g.message}</span>{g.unread > 0 && <b>{g.unread}</b>}</div></div></button>) : <button className="chat-list-item active"><Avatar initials="RV" color="orange"/><div className="chat-item-copy"><div className="chat-item-top"><strong>Rohan Verma</strong><time>9:30 AM</time></div><div className="chat-item-bottom"><span>Team Admin · Sales</span></div></div></button>}
+          {view === 'personal' ? filteredPeople.map((p) => { const i = people.indexOf(p); return <button key={p.name} className={`chat-list-item ${active === i ? 'active' : ''}`} onClick={() => {setActive(i);setMobileConversation(true)}}><Avatar initials={p.initials} color={p.color}/><div className="chat-item-copy"><div className="chat-item-top"><strong>{p.name}</strong><time>{p.time}</time></div><div className="chat-item-bottom"><span>{p.message}</span>{p.unread > 0 && <b>{p.unread}</b>}</div></div></button>}) : view === 'groups' ? filteredGroups.map((g, i) => <button key={g.name} className={`chat-list-item ${active % groups.length === i ? 'active' : ''}`} onClick={() => {setActive(i);setMobileConversation(true)}}><Avatar initials={g.initials} color={g.color}/><div className="chat-item-copy"><div className="chat-item-top"><strong>{g.name}</strong><time>{g.time}</time></div><div className="chat-item-bottom"><span>{g.message}</span>{g.unread > 0 && <b>{g.unread}</b>}</div></div></button>) : <button className="chat-list-item active" onClick={() => setMobileConversation(true)}><Avatar initials="RV" color="orange"/><div className="chat-item-copy"><div className="chat-item-top"><strong>Rohan Verma</strong><time>9:30 AM</time></div><div className="chat-item-bottom"><span>Team Admin · Sales</span></div></div></button>}
           <div className="list-footer"><span className="online-dot"/> {people.filter(p => p.status === 'Online').length} teammates online</div>
         </section>
         <section className="conversation-panel">

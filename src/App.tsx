@@ -1,8 +1,8 @@
 import { useState } from 'react'
 import {
   Activity, ArrowRight, Bell, BriefcaseBusiness, CheckCheck, ChevronDown,
-  CircleHelp, Command, FileText, Hash, LockKeyhole, LogOut, MessageCircle,
-  MoreHorizontal, Plus, Search, Send, Settings, ShieldCheck, Users, Video,
+  CircleHelp, Command, FileText, LockKeyhole, MessageCircle,
+  MoreHorizontal, Plus, Search, Send, ShieldCheck, Users,
   Mic, Paperclip, Smile, PanelLeftClose, Menu, Sparkles, UserRound,
 } from 'lucide-react'
 

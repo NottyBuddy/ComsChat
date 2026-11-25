@@ -53,7 +53,7 @@ export default function AuthGate() {
   e.preventDefault();setBusy(true);setError('');setNote('')
   try{
    if(!supabase)throw new Error('Supabase configuration missing.')
-   if(!identifier.trim()||!password)throw new Error('ID aur password dono required hain.')
+   if(!identifier.trim()||!password)throw new Error('Both employee ID and password are required.')
    const {error}=await supabase.auth.signInWithPassword({email:authEmailForId(identifier),password})
    if(error)throw error
    await loadProfile()
@@ -64,8 +64,8 @@ export default function AuthGate() {
   e.preventDefault();setBusy(true);setError('');setNote('')
   try{
    if(!supabase)throw new Error('Supabase configuration missing.')
-   if(identifier.trim().toUpperCase()!=='HRH-CA-27558')throw new Error('Super Admin ID fixed hai: HRH-CA-27558')
-   if(displayName.trim().length<2||companyName.trim().length<2)throw new Error('Naam aur company required hain.')
+   if(identifier.trim().toUpperCase()!=='HRH-CA-27558')throw new Error('The Super Admin ID is fixed: HRH-CA-27558')
+   if(displayName.trim().length<2||companyName.trim().length<2)throw new Error('Name and company name are required.')
    const policy=passwordPolicyError(password,'superadmin');if(policy)throw new Error(policy)
    const email=authEmailForId(identifier)
    // Recover safely if Auth user was created earlier but the profile RPC did not finish.
@@ -77,10 +77,10 @@ export default function AuthGate() {
     if(loginError) throw new Error('Is ID ka Auth account pehle se bana hai, lekin diye gaye password se login nahi hua. Password check karo; account/profile ko duplicate create nahi kiya gaya.')
     sessionReady=Boolean(loginData.session)
    } else if(signupError) {
-    if(/failed to fetch|network|fetch/i.test(signupError.message)) throw new Error('Supabase se connection nahi ban paaya. Internet/VPN/ad-blocker check karke page refresh karo. Account create hua ya nahi, is attempt mein confirm nahi ho saka; dobara submit karne par app existing account recovery bhi try karega.')
+    if(/failed to fetch|network|fetch/i.test(signupError.message)) throw new Error('The browser could not reach Supabase. Check your internet connection, VPN, firewall, or browser extensions, then refresh this page. We could not confirm whether the account was created. If you try again, the app will attempt to recover an existing account before creating a new profile.')
     throw signupError
    }
-   if(!sessionReady) throw new Error('Auth session nahi mila. Supabase Auth mein email confirmation disabled hona chahiye; synthetic ID par confirmation email receive nahi ho sakta.')
+   if(!sessionReady) throw new Error('No authenticated session was returned. Email confirmation must be disabled in Supabase Auth because this employee ID does not use a real email inbox.')
    const {error:rpcError}=await supabase.rpc('bootstrap_superadmin',{p_display_name:displayName.trim(),p_company_name:companyName.trim(),p_employee_code:identifier.trim()})
    if(rpcError) throw new Error('Auth sign-in ho gaya, lekin company profile setup complete nahi hua: '+rpcError.message+'. Isi ID/password se setup dobara submit karo; app existing Auth account ko recover karke profile setup continue karega.')
    await loadProfile()
@@ -92,7 +92,7 @@ export default function AuthGate() {
   e.preventDefault();setChangingPassword(true);setError('');setNote('')
   try{
    if(!supabase||!profile)throw new Error('Session missing.')
-   if(newPassword!==confirmPassword)throw new Error('Passwords match nahi karte.')
+   if(newPassword!==confirmPassword)throw new Error('The passwords do not match.')
    const policy=passwordPolicyError(newPassword,profile.role==='superadmin'?'superadmin':profile.role==='admin'||profile.role==='subadmin'?profile.role:'employee')
    if(policy)throw new Error(policy)
    const {error}=await supabase.auth.updateUser({password:newPassword})

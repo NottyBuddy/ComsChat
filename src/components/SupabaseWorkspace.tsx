@@ -57,7 +57,8 @@ export default function SupabaseWorkspace({profile,company,teams}:{profile:Profi
  useEffect(()=>{if(selectedChat)void loadMessages(selectedChat);else setMessages([])},[selectedChat])
  useEffect(()=>{
   if(!supabase||!selectedChat)return
-  const client=supabase\n  const channel=client.channel('chat-'+selectedChat).on('postgres_changes',{event:'*',schema:'public',table:'messages',filter:'chat_id=eq.'+selectedChat},()=>void loadMessages(selectedChat)).subscribe()
+  const client=supabase
+  const channel=client.channel('chat-'+selectedChat).on('postgres_changes',{event:'*',schema:'public',table:'messages',filter:'chat_id=eq.'+selectedChat},()=>void loadMessages(selectedChat)).subscribe()
   return ()=>{void client.removeChannel(channel)}
  },[selectedChat])
  const scopedTeams=teams.filter(t=>!selectedTeam||t.id===selectedTeam)

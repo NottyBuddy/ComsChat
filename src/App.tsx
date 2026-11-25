@@ -3,7 +3,7 @@ import {
   Activity, ArrowRight, Bell, BriefcaseBusiness, CheckCheck, ChevronDown,
   CircleHelp, Command, FileText, LockKeyhole, MessageCircle,
   MoreHorizontal, Plus, Search, Send, ShieldCheck, Users,
-  Mic, Paperclip, Smile, PanelLeftClose, Menu, Sparkles, UserRound,
+  Mic, Paperclip, Smile, PanelLeftClose, Menu, Sparkles, UserRound, ArrowLeft,
 } from 'lucide-react'
 
 type View = 'personal' | 'groups' | 'admin'
@@ -78,7 +78,7 @@ function App() {
     </aside>
     {mobileNav && <div className="mobile-scrim" onClick={() => setMobileNav(false)}/>}
     <main className="main-area">
-      <header className="topbar"><div className="topbar-left"><button className="icon-button mobile-menu" onClick={() => setMobileNav(!mobileNav)}><Menu size={19}/></button><div className="crumb">Workspace <span>/</span> <strong>{view === 'personal' ? 'Personal chat' : view === 'groups' ? 'Group chat' : 'Admin chat'}</strong></div></div><div className="topbar-right"><div className="secure-pill"><span/> Team space secured</div><button className="icon-button"><Search size={18}/></button><button className="icon-button notification"><Bell size={18}/><i/></button><Avatar initials="MK" color="orange" small/></div></header>
+      <header className="topbar"><div className="topbar-left"><button className="icon-button mobile-menu" onClick={() => mobileConversation ? setMobileConversation(false) : setMobileNav(!mobileNav)}>{mobileConversation ? <ArrowLeft size={19}/> : <Menu size={19}/>}</button><div className="crumb">Workspace <span>/</span> <strong>{view === 'personal' ? 'Personal chat' : view === 'groups' ? 'Group chat' : 'Admin chat'}</strong></div></div><div className="topbar-right"><div className="secure-pill"><span/> Team space secured</div><button className="icon-button"><Search size={18}/></button><button className="icon-button notification"><Bell size={18}/><i/></button><Avatar initials="MK" color="orange" small/></div></header>
       <div className={`content-area ${mobileConversation ? "show-conversation" : ""}`}>
         <section className="chat-list-panel">
           <div className="panel-heading"><div><div className="eyebrow">YOUR TEAM</div><h2>{view === 'personal' ? 'Personal chats' : view === 'groups' ? 'Group chats' : 'Admin chat'}</h2></div><button className="icon-button add-button"><Plus size={18}/></button></div>

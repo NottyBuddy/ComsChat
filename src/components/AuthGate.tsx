@@ -69,7 +69,12 @@ export default function AuthGate() {
       const {error:rpcError}=await supabase.rpc('bootstrap_superadmin',{p_display_name:displayName.trim(),p_company_name:companyName.trim(),p_employee_code:identifier.trim()})
       if(rpcError)throw rpcError
       await loadProfile()
-    }catch(err){setError(err instanceof Error?err.message:'Setup failed.')}
+    }catch(err){
+      const message=err instanceof Error?err.message:String(err)
+      if(message==='Failed to fetch'||err instanceof TypeError){
+        setError('Supabase server se connection nahi ho raha. GitHub Actions secrets mein VITE_SUPABASE_URL aur VITE_SUPABASE_PUBLISHABLE_KEY check karo; URL project ka https://<project-ref>.supabase.co hona chahiye. Project paused/network/CORS issue bhi ho sakta hai. Details: '+message)
+      }else setError(message||'Setup failed. Please retry.')
+    }
     finally{setBusy(false)}
   }
 

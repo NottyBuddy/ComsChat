@@ -108,7 +108,7 @@ export default function AuthGate() {
    if(policy)throw new Error(policy)
    const {error}=await supabase.auth.updateUser({password:newPassword})
    if(error)throw error
-   const {error:flagError}=await supabase.from('profiles').update({must_change_password:false}).eq('id',profile.id)
+   const {error:flagError}=await supabase.rpc('clear_own_password_change_flag')
    if(flagError)throw flagError
    setProfile({...profile,must_change_password:false});setNewPassword('');setConfirmPassword('');setNote('Password successfully changed.')
   }catch(err){setError(err instanceof Error?err.message:'Password change failed.')}

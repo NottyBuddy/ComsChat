@@ -1,7 +1,8 @@
 import { createClient } from '@supabase/supabase-js'
 
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL as string | undefined
-const supabasePublishableKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY as string | undefined
+// Publishable client key is intended for browser use; all data access remains protected by RLS.
+const supabaseUrl = (import.meta.env.VITE_SUPABASE_URL as string | undefined) || 'https://ldpjbwewyihgpfncpumr.supabase.co'
+const supabasePublishableKey = (import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY as string | undefined) || 'sb_publishable_9QVhO-Y1iXZtwbczRFI4FQ_lT2N8LJr'
 
 export const supabaseConfigured = Boolean(supabaseUrl && supabasePublishableKey)
 

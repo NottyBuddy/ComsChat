@@ -28,7 +28,7 @@ const initial: {company:string,superName:string,teams:Team[],users:UserRec[],cha
  ],
  chats:[
   {id:'DEMO-GROUP-SALES',type:'group',teamId:'TEAM-SALES',title:'Sales Team Updates',members:['HRH-CA-27558','ADM-SALES01','SUB-SALES01','EMP-SALES01','EMP-SALES02'],messages:[
-   {id:'m1',by:'ADM-SALES01',byName:'Aarav Mehta',text:'Morning team. Please update today's client follow-ups by 11 AM.',time:'09:15'},
+   {id:'m1',by:'ADM-SALES01',byName:'Aarav Mehta',text:"Morning team. Please update today's client follow-ups by 11 AM.",time:'09:15'},
    {id:'m2',by:'EMP-SALES01',byName:'Rohan Verma',text:'Three follow-ups are complete. I have sent one proposal for review.',time:'09:22'},
    {id:'m3',by:'EMP-SALES02',byName:'Ananya Singh',text:'Updated the shared tracker.',time:'09:28'}
   ]},

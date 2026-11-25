@@ -99,6 +99,34 @@ export default function SupabaseWorkspace({profile,company,teams}:{profile:Profi
   }catch(e){setError(e instanceof Error?e.message:'Team creation failed.')}
   finally{setCreatingTeam(false)}
  }
+ const startPersonalChat=async(person:Person)=>{
+  if(!supabase)return
+  const team=teams.find(t=>t.id===selectedTeam)||teams[0]
+  if(!team){setError('You are not assigned to a team yet.');return}
+  setBusy(true);setError('')
+  try{
+   const {data:teamMember,error:teamError}=await supabase.from('team_members').select('team_id').eq('team_id',team.id).eq('user_id',person.id).maybeSingle()
+   if(teamError)throw teamError
+   if(!teamMember)throw new Error('This person is not in your selected team.')
+   const {data:mine,error:mineError}=await supabase.from('chat_members').select('chat_id').eq('user_id',profile.id)
+   if(mineError)throw mineError
+   const ids=(mine||[]).map(x=>x.chat_id)
+   if(ids.length){
+    const {data:existing,error:existingError}=await supabase.from('chats').select('id,chat_type,title,team_id,created_at').in('id',ids).eq('chat_type','personal').eq('team_id',team.id)
+    if(existingError)throw existingError
+    for(const chat of existing||[]){
+     const {data:roster}=await supabase.from('chat_members').select('user_id').eq('chat_id',chat.id)
+     if((roster||[]).some(x=>x.user_id===person.id)){setChats(prev=>[chat as Chat,...prev.filter(c=>c.id!==chat.id)]);setSelectedChat(chat.id);return}
+    }
+   }
+   const {data:chat,error}=await supabase.from('chats').insert({company_id:profile.company_id,team_id:team.id,chat_type:'personal',title:person.display_name,created_by:profile.id}).select('id,chat_type,title,team_id,created_at').single()
+   if(error)throw error
+   const {error:membersError}=await supabase.from('chat_members').insert([{chat_id:chat.id,user_id:profile.id},{chat_id:chat.id,user_id:person.id}])
+   if(membersError)throw membersError
+   setChats(prev=>[chat as Chat,...prev]);setSelectedChat(chat.id)
+  }catch(e){setError(e instanceof Error?e.message:'Could not start personal chat.')}
+  finally{setBusy(false)}
+ }
  const createChat=async(type:'group'|'admin')=>{
   if(!supabase)return
   const team=scopedTeams[0]
@@ -125,7 +153,7 @@ export default function SupabaseWorkspace({profile,company,teams}:{profile:Profi
     <form onSubmit={e=>{e.preventDefault();void manageAccount('reset_password')}}><h3><LockKeyhole size={15}/> Reset password</h3><input value={resetId} onChange={e=>setResetId(e.target.value)} placeholder="Employee/Admin ID" required/><input type="password" value={resetPass} onChange={e=>setResetPass(e.target.value)} placeholder="New temporary password" required/><button disabled={accountBusy}><RefreshCw size={14}/> Reset</button></form>
     {accountError&&<div className="auth-error">{accountError}</div>}{accountMessage&&<div className="auth-note">{accountMessage}</div>}
    </section>}
-   <div className="real-label">PEOPLE VISIBLE TO YOU</div>{people.map(p=><div className="real-person" key={p.id}><span>{p.display_name}</span><small>{p.employee_code}</small></div>)}
+   <div className="real-label">PEOPLE VISIBLE TO YOU</div>{people.filter(p=>p.id!==profile.id).map(p=><div className="real-person" key={p.id}><span>{p.display_name}<small>{p.employee_code} · {p.role}</small></span><button onClick={()=>void startPersonalChat(p)} disabled={busy}>Message</button></div>)}
   </aside>
   <section className="real-main"><div className="real-page-head"><div><div className="real-label">LIVE WORKSPACE</div><h1>{activeChat?.title||'Your conversations'}</h1><p>Real Supabase records · role-based access</p></div><button onClick={()=>void load()}><RefreshCw size={15}/> Refresh</button></div>
    {error&&<div className="auth-error">{error}</div>}

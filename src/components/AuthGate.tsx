@@ -1,4 +1,5 @@
-import { FormEvent, useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
+import type { FormEvent } from 'react'
 import { supabase, supabaseConfigured, authEmailForId } from '../lib/supabase'
 import { ShieldCheck, LockKeyhole, UserRound, Building2, LogIn, LoaderCircle, LogOut } from 'lucide-react'
 

@@ -40,3 +40,9 @@
 .real-messages{flex:1;overflow:auto;padding:22px 0;display:flex;flex-direction:column;gap:12px}.real-message{max-width:72%;align-self:flex-start;background:#1b2940;border:1px solid #2c3b54;border-radius:12px;padding:11px 14px}.real-message.mine{align-self:flex-end;background:#263c62}.real-message strong{font-size:10px;color:#b8c9e8}.real-message p{font-size:13px;margin:6px 0;white-space:pre-wrap;overflow-wrap:anywhere}.real-message time{font-size:9px;color:#90a1bd}
 .real-composer{display:flex;gap:9px;padding-top:14px;border-top:1px solid #283448}.real-composer input{flex:1;min-width:0;background:#111927;border:1px solid #34445d;border-radius:9px;padding:13px;color:#f0f4fc}.real-composer button{display:flex;align-items:center;gap:7px;background:#5877c7;color:white;border:0;border-radius:9px;padding:0 17px}
 @media(max-width:760px){.real-workspace{grid-template-columns:1fr}.real-sidebar{border-right:0;border-bottom:1px solid #283448;max-height:48vh}.real-main{padding:18px}.workspace-header{padding:12px}.real-message{max-width:90%}}
+
+.real-account-panel{margin-top:18px;padding:12px;border:1px solid #2d3c54;border-radius:10px;background:#141e2d}
+.real-account-panel form{display:grid;gap:7px;margin:10px 0 16px}
+.real-account-panel h3{display:flex;align-items:center;gap:7px;font-size:11px;color:#dce7f7;margin:3px 0}
+.real-account-panel input,.real-account-panel select{width:100%;min-width:0;padding:9px;background:#0e1420;color:#eaf0fa;border:1px solid #334158;border-radius:7px;font-size:10px}
+.real-account-panel button{display:flex;align-items:center;justify-content:center;gap:6px;padding:9px;border:0;border-radius:7px;background:#5877c7;color:white;font-size:10px}

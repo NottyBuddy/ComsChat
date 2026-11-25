@@ -20,7 +20,6 @@ export default function AuthGate() {
  const [error,setError]=useState('')
  const [note,setNote]=useState('')
  const [teams,setTeams]=useState<Team[]>([])
- const [accountName,setAccountName]=useState('')
  const [newPassword,setNewPassword]=useState('')
  const [confirmPassword,setConfirmPassword]=useState('')
  const [changingPassword,setChangingPassword]=useState(false)

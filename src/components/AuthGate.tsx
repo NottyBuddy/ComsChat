@@ -27,7 +27,9 @@ export default function AuthGate() {
 
  async function loadProfile() {
   if(!supabase)return
-  const {data,error:profileError}=await supabase.from('profiles').select('id,company_id,display_name,employee_code,role,active,must_change_password').single()
+  const {data:{user},error:userError}=await supabase.auth.getUser()
+  if(userError||!user){setError('Session missing. Please sign in again.');return}
+  const {data,error:profileError}=await supabase.from('profiles').select('id,company_id,display_name,employee_code,role,active,must_change_password').eq('id',user.id).single()
   if(profileError||!data){setError('Account profile missing. Access denied.');await supabase.auth.signOut();return}
   if(!data.active){setError('This account is inactive.');await supabase.auth.signOut();return}
   setProfile(data as Profile)

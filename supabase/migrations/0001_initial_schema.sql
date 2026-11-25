@@ -54,7 +54,21 @@ create or replace function public.is_team_member(target_team uuid) returns boole
 as $$ select exists(select 1 from public.team_members tm join public.profiles p on p.id=tm.user_id
  where tm.team_id=target_team and tm.user_id=auth.uid() and p.active=true and p.company_id=public.current_company_id()) $$;
 create or replace function public.is_chat_member(target_chat uuid) returns boolean language sql stable security definer set search_path=public
-as $$ select exists(select 1 from public.chat_members where chat_id=target_chat and user_id=auth.uid()) $$;
+as $ select exists(select 1 from public.chat_members where chat_id=target_chat and user_id=auth.uid()) $;
+create or replace function public.can_monitor_chat(target_chat uuid) returns boolean language sql stable security definer set search_path=public
+as $ select exists(select 1 from public.chats c join public.team_members tm on tm.team_id=c.team_id where c.id=target_chat and c.chat_type='personal' and tm.user_id=auth.uid() and tm.team_role in ('admin','subadmin')) $;
+create unique index if not exists idx_employee_one_team on public.team_members(user_id) where team_role='employee';
+create or replace function public.audit_message_change() returns trigger language plpgsql security definer set search_path=public
+as $ begin
+ if tg_op='UPDATE' and old.body is distinct from new.body then
+  insert into public.message_audit(message_id,chat_id,actor_id,action,old_body,new_body) values(old.id,old.chat_id,auth.uid(),'edit',old.body,new.body); new.edited_at=now();
+ elsif tg_op='DELETE' then
+  insert into public.message_audit(message_id,chat_id,actor_id,action,old_body,new_body) values(old.id,old.chat_id,auth.uid(),'delete',old.body,null);
+ end if;
+ return coalesce(new,old);
+end $;
+drop trigger if exists trg_audit_message_change on public.messages;
+create trigger trg_audit_message_change before update or delete on public.messages for each row execute function public.audit_message_change();
 alter table public.companies enable row level security;
 alter table public.profiles enable row level security;
 alter table public.teams enable row level security;
@@ -67,9 +81,9 @@ create policy "company members read own company" on public.companies for select 
 create policy "users read company profiles" on public.profiles for select to authenticated using(company_id=public.current_company_id());
 create policy "users read assigned teams" on public.teams for select to authenticated using(company_id=public.current_company_id() and (public.current_role()='superadmin' or public.is_team_member(id)));
 create policy "team members read team roster" on public.team_members for select to authenticated using(user_id=auth.uid() or public.current_role()='superadmin' or public.is_team_member(team_id));
-create policy "chat members read own chats" on public.chats for select to authenticated using(company_id=public.current_company_id() and public.is_chat_member(id));
+create policy "chat members and assigned admins read permitted chats" on public.chats for select to authenticated using(company_id=public.current_company_id() and (public.is_chat_member(id) or public.can_monitor_chat(id)));
 create policy "chat roster visible to chat members" on public.chat_members for select to authenticated using(public.is_chat_member(chat_id));
-create policy "chat members read messages" on public.messages for select to authenticated using(public.is_chat_member(chat_id));
+create policy "chat members and assigned admins read permitted messages" on public.messages for select to authenticated using(public.is_chat_member(chat_id) or public.can_monitor_chat(chat_id));
 create policy "members send messages to their chats" on public.messages for insert to authenticated with check(sender_id=auth.uid() and public.is_chat_member(chat_id) and exists(select 1 from public.chats c where c.id=chat_id and c.company_id=public.current_company_id()));
 create policy "authors edit own messages" on public.messages for update to authenticated using(sender_id=auth.uid() and deleted_at is null) with check(sender_id=auth.uid());
 create policy "authors delete own messages" on public.messages for delete to authenticated using(sender_id=auth.uid());
